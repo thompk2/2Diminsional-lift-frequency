@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>D3 test</title>
+	<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+	<style>
+
+		body { font: 12px Arial;}		/* set the default text for anything occuring in the of the html */
+
+		path { 
+			stroke: steelblue;			/* the line colour for paths is steelblue */
+			stroke-width: 2;			/* the line width for paths is 2 pixels */
+			fill: none;					/* don't fill the area bounded by any path elements */
+		}
+
+		.axis path,
+		.axis line {
+			fill: none;					/* don't fill areas bounded by the axis line */
+			stroke: grey;				/* make the axis line grey */
+			stroke-width: 1;			/* make the width of the axis lines 1 pixel */
+			shape-rendering: crispEdges;/* make the edges sharp */
+		}	
+		
+		.null-lift-container rect {
+		  fill: steelblue;
+		}
+
+		.null-lift-container text {
+		  fill: white;
+		  font: 10px sans-serif;
+		  text-anchor: middle;
+		}
+		
+		.null-lift-container,
+		.lift-container{
+			display: inline-block;
+		}
+        
+        .null-lift,
+        .null-freq
+        {
+            stroke: red;
+            stroke-width: 2px;
+            fill-opacity: 0;
+        }
+        
+        .null-lift-line
+        {
+            stroke: red;
+            stroke-width: 2px;
+        }
+        
+        .null-freq:hover,
+        .null-lift:hover
+        {
+            fill-opacity: 1;
+        }
+</style>
+</head>
+<body>
+	<select class="csv-selection">
+		<option value="MainStreetHubAttributes.csv">Main Street Hub</option>
+		<option value="McAfeeAttributes.csv">McAfee</option>
+		<option value="NutanixAttributes.csv">Nutanix</option>
+		<option value="SpiceWorksAttribtes.csv">Spice Works</option>
+		<option value="VitalSmartsAttributes.csv">Vital Smarts</option>
+	</select>
+	<select class="attribute-selection"></select>
+	<div class="lift-graphs">
+		<div class="lift-container"></div>
+		<div class="null-lift-container"></div>
+	</div>
+	<div class="frequency-container"></div>
+	<script src="main.js"></script>
+</body>
+</html>
