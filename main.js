@@ -4,7 +4,7 @@
 
 // Set the dimensions of the canvas / graph
 var	liftMargin = {top: 30, right: 00, bottom: 30, left: 50},	                        // sets the width of the margins around the actual graph area
-	liftWidth = 545 - liftMargin.left - liftMargin.right,		                		// sets the width of the graph area
+	liftWidth = 530 - liftMargin.left - liftMargin.right,		                		// sets the width of the graph area
 	liftHeight = 270 - liftMargin.top - liftMargin.bottom;		                		// sets the height of the graph area
 
 // Set the ranges
@@ -37,6 +37,9 @@ function graphLift(toGraph, nullData) {
 	}
 	
 	if(toGraph[0].IsCategorical) {
+        //Show attribute panel
+        document.getElementsByClassName("attribute-panel")[0].classList.remove("hidden-component");
+        
 		//add checkboxes for filtering the categorical chart
 		for(var index =0; index<toGraph.length; index++) {
 			var option = toGraph[index].LowerInclusive;
@@ -54,6 +57,9 @@ function graphLift(toGraph, nullData) {
 		liftXAxis = d3.svg.axis().scale(liftX)
 						  .orient("bottom").ticks(5);	
 	} else {
+        //hide attribute panel
+        document.getElementsByClassName("attribute-panel")[0].classList.add("hidden-component");
+        
 		liftSvg.selectAll(".bar").remove();
 		var	liftX = d3.scale.linear().range([0, liftWidth]);
 		graphContinuousLift(toGraph, nullData, liftX);
@@ -172,7 +178,7 @@ function onChangeCheckbox(event, column) {
 		
 // Set the dimensions of the canvas / graph
 var	freqMargin = {top: 30, right: 20, bottom: 30, left: 50},	// sets the width of the margins around the actual graph area
-	freqWidth = 545 - freqMargin.left - freqMargin.right,				// sets the width of the graph area
+	freqWidth = 530 - freqMargin.left - freqMargin.right,				// sets the width of the graph area
 	freqHeight = 200 - freqMargin.top - freqMargin.bottom;				// sets the height of the graph area
 
 // Set the ranges

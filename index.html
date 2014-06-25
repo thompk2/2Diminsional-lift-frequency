@@ -8,17 +8,19 @@
 	<style>
 
 		body { font: 12px Arial;}		/* set the default text for anything occuring in the of the html */
-		select {
+		
+        select,
+        .option-container {
 			margin-bottom: 10px;
 		}
 		path { 
-			stroke: steelblue;			/* the line colour for paths is steelblue */
+			stroke: #428bca;			/* the line colour for paths is #428bca */
 			stroke-width: 2;			/* the line width for paths is 2 pixels */
 			fill: none;					/* don't fill the area bounded by any path elements */
 		}
 		
 		.bar {
-			fill: steelblue;
+			fill: #428bca;
 		}
 
 		.axis path,
@@ -30,7 +32,7 @@
 		}	
 		
 		.null-lift-container rect {
-		  fill: steelblue;
+		  fill: #428bca;
 		}
 
 		.null-lift-container text {
@@ -63,7 +65,6 @@
             fill-opacity: 1;
         }
         .select-container {
-            max-height: 200px;
             overflow: auto;
         }
 		@media (min-width: 992px) {
@@ -71,6 +72,10 @@
 				overflow: visible;
 			}
 		}
+        
+        .hidden-component {
+            display: none;
+        }
 
 </style>
 </head>
@@ -79,25 +84,36 @@
 		<div class="page-header">
 			<h1>2D Lift and Frequency</h1>
 		</div>
-		<div class="row controls">
-			<div class="col-md-2">
-                <select class="csv-selection form-control input-sm">
-                    <option value="outputDataKeith.csv">21 Main Street</option>
-                    <option value="MainStreetHubAttributes.csv">Main Street Hub</option>
-                    <option value="McAfeeAttributes.csv">McAfee</option>
-                    <option value="NutanixAttributes.csv">Nutanix</option>
-                    <option value="SpiceWorksAttribtes.csv">Spice Works</option>
-                    <option value="VitalSmartsAttributes.csv">Vital Smarts</option>
-                </select>
-                <select class="attribute-selection form-control input-sm"></select>
-                <button type="button" class="btn btn-lg btn-primary display-nulls active">Display Nulls</button>
-			</div>
-			<div class="lift-container col-md-7 col-sm-12 col-xs-12 well well-sm"></div>
-			<div class="select-container col-md-3"></div>
-		</div>
-		<div class="row">
-			<div class="frequency-container col-md-7 col-sm-12 col-xs-12 col-md-offset-2 well well-sm"></div>
-		</div>
+        <div class="row">
+            <div class="col-md-9">
+                <div class="row controls">
+                    <div class="col-md-3 option-container">
+                        <select class="csv-selection form-control input-sm">
+                            <option value="outputDataKeith.csv">21 Main Street</option>
+                            <option value="MainStreetHubAttributes.csv">Main Street Hub</option>
+                            <option value="McAfeeAttributes.csv">McAfee</option>
+                            <option value="NutanixAttributes.csv">Nutanix</option>
+                            <option value="SpiceWorksAttribtes.csv">Spice Works</option>
+                            <option value="VitalSmartsAttributes.csv">Vital Smarts</option>
+                        </select>
+                        <select class="attribute-selection form-control input-sm"></select>
+                        <button type="button" class="btn btn-sm btn-primary display-nulls active">Display Nulls</button>
+                    </div>
+                    <div class="lift-container col-md-9 col-sm-12 col-xs-12 well well-sm"></div>
+                </div>
+                
+                <div class="row">
+                    <div class="frequency-container col-md-9 col-sm-12 col-xs-12 col-md-offset-3 well well-sm"></div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="panel panel-primary attribute-panel hidden-component">
+                    <div class="panel-heading">Select Attributes
+                    </div>
+                    <div class="select-container panel-body"></div>
+                </div>
+            </div>
+        </div>
 	</div>
 	<script src="main.js"></script>
 </body>
