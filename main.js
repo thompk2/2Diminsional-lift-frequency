@@ -62,28 +62,7 @@ function graphLift(toGraph, nullData) {
 						  .orient("bottom").ticks(5);	
 	}
 
-	// Remove the old axes
-	liftSvg.selectAll(".axis").remove();
-	liftSvg.selectAll("text").remove();
-	
-	// Add the X Axis
-	liftSvg.append("g")											// append the x axis to the 'g' (grouping) element
-		.attr("class", "x axis")							// apply the 'axis' CSS styles to this path
-		.attr("transform", "translate(0," + liftHeight + ")")	// move the drawing point to 0,height
-		.call(liftXAxis);										// call the xAxis function to draw the axis
-
-	// Add the Y Axis
-	liftSvg.append("g")											// append the y axis to the 'g' (grouping) element
-		.attr("class", "y axis")							// apply the 'axis' CSS styles to this path
-		.call(liftYAxis);										// call the yAxis function to draw the axis
-
-	liftSvg.append("text")
-		.attr("x", (liftWidth/2))
-		.attr("y", 0 - (liftMargin.top)/2)
-		.attr("text-anchor", "middle")
-		.style("font-size", "16px")
-		.style("text-decoration", "bold")
-		.text("Lift")
+	scaleLiftAxes(liftXAxis);
 }
 
 function graphDiscreteLift(toGraph, nullData, liftX) {
@@ -109,13 +88,44 @@ function graphDiscreteLift(toGraph, nullData, liftX) {
 
 function updateDiscreteLift(values, column) {
 	var attribute = discreteAttributeData[column];
+	var nullData = discreteAttributeNullData[column];
 	var filteredData = [];
+	var	liftX = d3.scale.ordinal().rangeRoundBands([0, liftWidth]);
+	var liftXAxis = d3.svg.axis().scale(liftX)
+				      .orient("bottom").ticks(5);
 	for(var i=0; i<attribute.length; i++){
-		if(attribute[i] in values) {
+		if( values.indexOf(attribute[i].LowerInclusive) > -1) {
 			filteredData.push(attribute[i]);
 		}
 	}
-	liftSvg.selectAll(".bar").data(filteredData);
+	
+	graphDiscreteLift(filteredData, nullData, liftX);
+	scaleLiftAxes(liftXAxis);
+}
+
+function scaleLiftAxes(liftXAxis) {
+	// Remove the old axes
+	liftSvg.selectAll(".axis").remove();
+	liftSvg.selectAll("text").remove();
+	
+	// Add the X Axis
+	liftSvg.append("g")											// append the x axis to the 'g' (grouping) element
+		.attr("class", "x axis")							// apply the 'axis' CSS styles to this path
+		.attr("transform", "translate(0," + liftHeight + ")")	// move the drawing point to 0,height
+		.call(liftXAxis);										// call the xAxis function to draw the axis
+
+	// Add the Y Axis
+	liftSvg.append("g")											// append the y axis to the 'g' (grouping) element
+		.attr("class", "y axis")							// apply the 'axis' CSS styles to this path
+		.call(liftYAxis);										// call the yAxis function to draw the axis
+
+	liftSvg.append("text")
+		.attr("x", (liftWidth/2))
+		.attr("y", 0 - (liftMargin.top)/2)
+		.attr("text-anchor", "middle")
+		.style("font-size", "16px")
+		.style("text-decoration", "bold")
+		.text("Lift")
 }
 
 function graphContinuousLift(toGraph, nullData, liftX) {
