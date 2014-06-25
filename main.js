@@ -27,7 +27,7 @@ var discreteAttributeData = {};
 var continuousAttributeNullData = {};
 var discreteAttributeNullData = {};
 
-function graphLift(toGraph, nullData) {
+function graphLift(toGraph, nullData, selected) {
 	var liftXAxis;
 	
 	// Remove all the checkboxes from the dom
@@ -40,14 +40,21 @@ function graphLift(toGraph, nullData) {
         //Show attribute panel
         document.getElementsByClassName("attribute-panel")[0].classList.remove("hidden-component");
         
+        var attributeList = [];
+        for(var i=0; i<toGraph.length; i++){
+            attributeList.push(toGraph[i].LowerInclusive);
+        }
+        
 		//add checkboxes for filtering the categorical chart
-		for(var index =0; index<toGraph.length; index++) {
-			var option = toGraph[index].LowerInclusive;
-			var column = toGraph[index].ColumnName;
-			var inputString = '<div class="checkbox"><label><input type="checkbox" class="discrete-option" checked value="'+option+'"></label>'+option+'</div>'
+		for(var index =0; index<discreteAttributeData[selected].length; index++) {
+			var option = discreteAttributeData[selected][index].LowerInclusive;
+			var column = discreteAttributeData[selected][index].ColumnName;
+			var inputString = '<div class="checkbox"><label><input type="checkbox" class="discrete-option"';
+            inputString += attributeList.indexOf(discreteAttributeData[selected][index].LowerInclusive) > -1 ? ' checked ' : '';
+            inputString += 'value="'+option+'"></label>'+option+'</div>'
 			form.insertAdjacentHTML('beforeend', inputString);
 			form.lastChild.getElementsByTagName("input")[0]
-						  .addEventListener ("change", function(event) {onChangeCheckbox(event, column)}, false);
+						  .addEventListener ("change", function(event) { graphSelectedData(getCheckedAttributes(column)) }, false);
 		}
 		
 		liftSvg.selectAll(".line").remove();
@@ -89,23 +96,6 @@ function graphDiscreteLift(toGraph, nullData, liftX) {
 					.attr("height", function(d) {return liftHeight - liftY(d.Lift); })
 					.attr("width", barWidth - 1);
     bar.exit().remove();
-}
-
-function updateDiscreteLift(values, column) {
-	var attribute = discreteAttributeData[column];
-	var nullData = discreteAttributeNullData[column];
-	var filteredData = [];
-	var	liftX = d3.scale.ordinal().rangeRoundBands([0, liftWidth]);
-	var liftXAxis = d3.svg.axis().scale(liftX)
-				      .orient("bottom").ticks(5);
-	for(var i=0; i<attribute.length; i++){
-		if( values.indexOf(attribute[i].LowerInclusive) > -1) {
-			filteredData.push(attribute[i]);
-		}
-	}
-	
-	graphDiscreteLift(filteredData, nullData, liftX);
-	scaleLiftAxes(liftXAxis);
 }
 
 function scaleLiftAxes(liftXAxis) {
@@ -160,7 +150,7 @@ function graphContinuousLift(toGraph, nullData, liftX) {
 		
 }
 
-function onChangeCheckbox(event, column) {
+function getCheckedAttributes(column) {
 	var checkBoxes = document.getElementsByClassName("discrete-option");
 	var checkedValues = [];
 	for(var i=0; i<checkBoxes.length; i++) {
@@ -168,8 +158,7 @@ function onChangeCheckbox(event, column) {
 			checkedValues.push(checkBoxes[i].value);
 		}
 	}
-	updateDiscreteLift(checkedValues, column);
-    updateDiscreteFreq(checkedValues, column);
+	return checkedValues;
 }
 
 //****************************
@@ -236,22 +225,6 @@ function graphDiscreteFreq(toGraph, nullData, freqX) {
     bar.exit().remove();
 };
 
-function updateDiscreteFreq(values, column) {
-	var attribute = discreteAttributeData[column];
-	var nullData = discreteAttributeNullData[column];
-	var filteredData = [];
-	var	freqX = d3.scale.ordinal().rangeRoundBands([0, freqWidth]);
-	var freqXAxis = d3.svg.axis().scale(freqX)
-				      .orient("bottom").ticks(5);
-	for(var i=0; i<attribute.length; i++){
-		if( values.indexOf(attribute[i].LowerInclusive) > -1) {
-			filteredData.push(attribute[i]);
-		}
-	}
-	
-	graphDiscreteFreq(filteredData, nullData, freqX);
-	scaleFreqAxes(freqXAxis);
-}
 
 function graphContinuousFreq(toGraph, nullData, freqX) {
     var absoluteMax = [];
@@ -348,8 +321,10 @@ function graphNulls(nonNullData, toGraph) {
 function toggleNulls(element){
     element.classList.toggle("active");
     var selected = document.getElementsByClassName("attribute-selection")[0].value;
-    var showNulls = document.getElementsByClassName("display-nulls")[0].classList.contains("active");
-    graphSelectedData(selected, showNulls);
+    var column = discreteAttributeData[selected];
+    var filter = getCheckedAttributes(column)
+    
+    graphSelectedData(filter);
 };
 
 // Lousy way to get a single number from the upper and lower bound ranges
@@ -406,12 +381,27 @@ function calculateFrequencySums(array, nullArray){
 	}
 }
 
-function graphSelectedData(selected, showNulls) {
-	var array = null;
+function graphSelectedData(filter) {
+    var selected = document.getElementsByClassName("attribute-selection")[0].value;
+    var showNulls = document.getElementsByClassName("display-nulls")[0].classList.contains("active");
+	var array = [];
 	var nullArray = null;
+    
+
 	
 	if(discreteAttributeData[selected] && discreteAttributeData[selected] != null){
-		array = discreteAttributeData[selected];
+        var tempArray = discreteAttributeData[selected];
+        
+        if(filter && filter != null) {
+            for(var i=0; i<tempArray.length; i++){
+                if( filter.indexOf(tempArray[i].LowerInclusive) > -1) {
+                    array.push(tempArray[i]);
+                }
+            }
+        } else {
+            array = tempArray;
+        }
+
 		nullArray = discreteAttributeNullData[selected]
 	}
 	if(continuousAttributeData[selected] && continuousAttributeData[selected] != null){
@@ -420,11 +410,11 @@ function graphSelectedData(selected, showNulls) {
 	}
 
 	if(nullArray != null && showNulls === true) {
-		graphLift(array, nullArray);
+		graphLift(array, nullArray, selected);
 		graphFreq(array, nullArray);
 		graphNulls(array, nullArray);
 	} else {
-		graphLift(array, [{Frequency: 0}]);
+		graphLift(array, [{Frequency: 0}], selected);
 		graphFreq(array, [{Frequency: 0}]);
         graphNulls(array, []);
 	}
@@ -465,17 +455,14 @@ function getData() {
 		
 		calculateFrequencySums(discreteAttributeData, discreteAttributeNullData);
 		calculateFrequencySums(continuousAttributeData, continuousAttributeNullData);
-		
-		var selected = document.getElementsByClassName("attribute-selection")[0].value;
-        var showNulls = document.getElementsByClassName("display-nulls")[0].classList.contains("active");
-		graphSelectedData(selected, showNulls);
+
+		graphSelectedData();
 	});
 }
 
 function init() {
 	document.getElementsByClassName("attribute-selection")[0].onchange = function() {
-        var showNulls = document.getElementsByClassName("display-nulls")[0].classList.contains("active");
-		graphSelectedData(event.target.value, showNulls);
+		graphSelectedData();
 	}
 	document.getElementsByClassName("csv-selection")[0].onchange = function() {
 		getData();
