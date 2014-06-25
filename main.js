@@ -38,7 +38,6 @@ function graphLift(toGraph, nullData) {
 	
 	if(toGraph[0].IsCategorical) {
 		//add checkboxes for filtering the categorical chart
-		
 		for(var index =0; index<toGraph.length; index++) {
 			var option = toGraph[index].LowerInclusive;
 			var column = toGraph[index].ColumnName;
@@ -164,6 +163,7 @@ function onChangeCheckbox(event, column) {
 		}
 	}
 	updateDiscreteLift(checkedValues, column);
+    updateDiscreteFreq(checkedValues, column);
 }
 
 //****************************
@@ -176,21 +176,10 @@ var	freqMargin = {top: 30, right: 20, bottom: 30, left: 50},	// sets the width o
 	freqHeight = 200 - freqMargin.top - freqMargin.bottom;				// sets the height of the graph area
 
 // Set the ranges
-var	freqX = d3.scale.linear().range([0, freqWidth]);				// scales the range of values on the x axis to fit between 0 and 'width'
 var	freqY = d3.scale.linear().range([freqHeight, 0]);				// scales the range of values on the y axis to fit between 'height' and 0
-
-// Define the axes
-var	freqXAxis = d3.svg.axis().scale(freqX)							// defines the x axis function and applies the scale for the x dimension
-	.orient("bottom").ticks(5);								// tells what side the ticks are on and how many to put on the axis
 
 var	freqYAxis = d3.svg.axis().scale(freqY)							// defines the y axis function and applies the scale for the y dimension
 	.orient("left").ticks(5);								// tells what side the ticks are on and how many to put on the axis
-
-// Define the line
-var	freqValueline = d3.svg.line()								// set 'valueline' to be a line
-	.interpolate("basis")									// XXX Jake: change the interpolation for the line	
-	.x(function(d) { return freqX(d.Range); })					// set the x coordinates for valueline to be the d.date values
-	.y(function(d) { return freqY(d.Frequency); });					// set the y coordinates for valueline to be the d.close values
 
 // Adds the svg canvas
 var	freqSvg = d3.select(".frequency-container")									// Explicitly state where the svg element will go on the web page (the 'body')
@@ -201,11 +190,75 @@ var	freqSvg = d3.select(".frequency-container")									// Explicitly state wher
 		.attr("transform", "translate(" + freqMargin.left + "," + freqMargin.top + ")"); // in a place that is the actual area for the graph		
 
 function graphFreq(toGraph, nullData) {
+    var	freqXAxis;
+    
+    if(toGraph[0].IsCategorical) {
+		freqSvg.selectAll(".line").remove();
+		var	freqX = d3.scale.ordinal().rangeRoundBands([0, freqWidth]);
+		graphDiscreteFreq(toGraph, nullData, freqX);
+		freqXAxis = d3.svg.axis().scale(freqX)
+						  .orient("bottom").ticks(5);	
+	} else {
+		freqSvg.selectAll(".bar").remove();
+		var	freqX = d3.scale.linear().range([0, freqWidth]);
+		graphContinuousFreq(toGraph, nullData, freqX);
+		freqXAxis = d3.svg.axis().scale(freqX)
+						  .orient("bottom").ticks(5);	
+	}
+    
+    scaleFreqAxes(freqXAxis);
+};
+
+function graphDiscreteFreq(toGraph, nullData, freqX) {
     var absoluteMax = [];
     absoluteMax.push(d3.max(toGraph, function(d) {return d.Frequency;}));
     absoluteMax.push(d3.max(nullData, function(d) {return d.Frequency;}));
+	
+	freqY.domain([0.0, d3.max(absoluteMax)]);
+	freqX.domain(toGraph.map(function(d) { return d.LowerInclusive; }));
+	
+	var barWidth = freqWidth / toGraph.length;
+	
+	var bar = freqSvg.selectAll(".bar")
+					 .data(toGraph);
+	bar.enter().append("rect")
+			   .attr("class", "bar");
+	bar.transition().attr("y", function(d) {return freqY(d.Frequency); })
+					.attr("x", function(d) {return freqX(d.LowerInclusive); })
+					.attr("height", function(d) {return freqHeight - freqY(d.Frequency); })
+					.attr("width", barWidth - 1);
+    bar.exit().remove();
+};
 
-	// Scale the range of the data
+function updateDiscreteFreq(values, column) {
+	var attribute = discreteAttributeData[column];
+	var nullData = discreteAttributeNullData[column];
+	var filteredData = [];
+	var	freqX = d3.scale.ordinal().rangeRoundBands([0, freqWidth]);
+	var liftXAxis = d3.svg.axis().scale(freqX)
+				      .orient("bottom").ticks(5);
+	for(var i=0; i<attribute.length; i++){
+		if( values.indexOf(attribute[i].LowerInclusive) > -1) {
+			filteredData.push(attribute[i]);
+		}
+	}
+	
+	graphDiscreteFreq(filteredData, nullData, freqX);
+	scaleLiftAxes(liftXAxis);
+}
+
+function graphContinuousFreq(toGraph, nullData, freqX) {
+    var absoluteMax = [];
+    absoluteMax.push(d3.max(toGraph, function(d) {return d.Frequency;}));
+    absoluteMax.push(d3.max(nullData, function(d) {return d.Frequency;}));
+    
+    // Define the line
+    var	freqValueline = d3.svg.line()
+                          .interpolate("basis")
+                          .x(function(d) { return freqX(d.Range); })
+                          .y(function(d) { return freqY(d.Frequency); });
+    
+    // Scale the range of the data
 	freqX.domain([d3.min(toGraph, function(d) { return d.Range; }), d3.max(toGraph, function(d) { return d.Range; })]);		// set the x domain so be as wide as the range of dates we have.
 	freqY.domain([0.0, d3.max(absoluteMax)]);	// set the y domain to go from 0 to the maximum value of all the data
 
@@ -218,7 +271,9 @@ function graphFreq(toGraph, nullData) {
 	line.enter().append("path")
 				.attr("class", "line")
 	line.transition().attr("d", lineToGraph);	
+};
 
+function scaleFreqAxes(freqXAxis) {
 	// Remove the old axes
 	freqSvg.selectAll(".axis").remove();
 	freqSvg.selectAll("text").remove();
@@ -241,9 +296,7 @@ function graphFreq(toGraph, nullData) {
 		.style("font-size", "16px")
 		.style("text-decoration", "bold")
 		.text("Frequency")
-};
-
-
+}
 		
 var nullLiftMargin = {top: 30, right: 00, bottom: 0, left: 00},
 	nullLiftWidth = 60 - nullLiftMargin.left - nullLiftMargin.right,
@@ -360,6 +413,7 @@ function graphSelectedData(selected) {
 	} else {
 		graphLift(array, [{Frequency: 0}]);
 		graphFreq(array, [{Frequency: 0}]);
+        graphNulls(array, []);
 	}
 }
 
