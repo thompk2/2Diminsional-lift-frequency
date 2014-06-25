@@ -39,10 +39,13 @@ function graphLift(toGraph, nullData) {
 	if(toGraph[0].IsCategorical) {
 		//add checkboxes for filtering the categorical chart
 		
-		for(var index in toGraph) {
+		for(var index =0; index<toGraph.length; index++) {
 			var option = toGraph[index].LowerInclusive;
-			var inputString = '<div class="checkbox"><label><input type="checkbox" checked value="'+option+'"></label>'+option+'</div>'
+			var column = toGraph[index].ColumnName;
+			var inputString = '<div class="checkbox"><label><input type="checkbox" class="discrete-option" checked value="'+option+'"></label>'+option+'</div>'
 			form.insertAdjacentHTML('beforeend', inputString);
+			form.lastChild.getElementsByTagName("input")[0]
+						  .addEventListener ("change", function(event) {onChangeCheckbox(event, column)}, false);
 		}
 		
 		liftSvg.selectAll(".line").remove();
@@ -104,6 +107,17 @@ function graphDiscreteLift(toGraph, nullData, liftX) {
     bar.exit().remove();
 }
 
+function updateDiscreteLift(values, column) {
+	var attribute = discreteAttributeData[column];
+	var filteredData = [];
+	for(var i=0; i<attribute.length; i++){
+		if(attribute[i] in values) {
+			filteredData.push(attribute[i]);
+		}
+	}
+	liftSvg.selectAll(".bar").data(filteredData);
+}
+
 function graphContinuousLift(toGraph, nullData, liftX) {
     var absoluteMax = [];
     absoluteMax.push(d3.max(toGraph, function(d) {return d.Lift;}));
@@ -129,6 +143,17 @@ function graphContinuousLift(toGraph, nullData, liftX) {
 				.attr("class", "line")
 	line.transition().attr("d", lineToGraph);
 		
+}
+
+function onChangeCheckbox(event, column) {
+	var checkBoxes = document.getElementsByClassName("discrete-option");
+	var checkedValues = [];
+	for(var i=0; i<checkBoxes.length; i++) {
+		if(checkBoxes[i].checked) {
+			checkedValues.push(checkBoxes[i].value);
+		}
+	}
+	updateDiscreteLift(checkedValues, column);
 }
 
 //****************************
