@@ -32,8 +32,10 @@ var	liftSvg = d3.select(".lift-container")						                         // Expl
 	.append("g")											                             // Append 'g' to the html 'body' of the web page
 		.attr("transform", "translate(" + liftMargin.left + "," + liftMargin.top + ")"); // in a place that is the actual area for the graph
 	
-var attributeData = {};
-var attributeNullData = {};
+var continuousAttributeData = {};
+var discreteAttributeData = {};
+var continuousAttributeNullData = {};
+var discreteAttributeNullData = {};
 
 function graphLift(toGraph, nullData) {
     var absoluteMax = [];
@@ -49,7 +51,7 @@ function graphLift(toGraph, nullData) {
 	// Add the valueline path.
 	var line = liftSvg.selectAll(".line")
 				  .data(lineToGraph);
-	line.exit().remove();
+	line.exit().transition().remove();
 	line.enter().append("path")
 				.attr("class", "line")
 	line.transition().attr("d", lineToGraph);	
@@ -170,7 +172,7 @@ var	nullLiftSvg = d3.select(".null-lift-container")						// Explicitly state whe
 		.attr("width", nullLiftWidth + nullLiftMargin.left + nullLiftMargin.right)	// Set the 'width' of the svg element
 		.attr("height", nullLiftHeight + nullLiftMargin.top + nullLiftMargin.bottom)// Set the 'height' of the svg element
 
-function graphNullLift(toGraph, nonNullData) {
+function graphNulls(toGraph, nonNullData) {
 	var circleRadius = 5;
 	
 	var dot = liftSvg.selectAll("circle")
@@ -215,27 +217,9 @@ function parseRange(lower, upper) {
 	return ( +lower + +upper ) / 2;
 }
 
-function init() {
-	document.getElementsByClassName("attribute-selection")[0].onchange = function() {
-		var toGraph = attributeData[event.target.value];
-        if(attributeNullData[event.target.value] != null) {
-            graphLift(toGraph, attributeNullData[event.target.value]);
-            graphFreq(toGraph, attributeNullData[event.target.value]);
-			graphNullLift(attributeNullData[event.target.value], toGraph);
-		} else {
-            graphLift(toGraph, [{Frequency: 0}]);
-            graphFreq(toGraph, [{Frequency: 0}]);
-        }
-	}
-	document.getElementsByClassName("csv-selection")[0].onchange = function() {
-		getData();
-	}
-	getData();
-}
-
 function getData() {
-	attributeData = {};
-	attributeNullData = {};
+	continuousAttributeData = {};
+	continuousAttributeNullData = {};
 
 	// Get the data
 	var csvSelection = document.getElementsByClassName("csv-selection")[0]
@@ -253,11 +237,11 @@ function getData() {
 	},
 	function(error, data) {
 		data.forEach(function(d) {
-			if(d.ColumnName in attributeData && d.Range !== null) {
-				attributeData[d.ColumnName].push(d);
+			if(d.ColumnName in continuousAttributeData && d.Range !== null) {
+				continuousAttributeData[d.ColumnName].push(d);
 			}
 			else if(d.Range !== null){
-				attributeData[d.ColumnName] = [d];
+				continuousAttributeData[d.ColumnName] = [d];
 				
 				var option = document.createElement("option");
 				option.textContent = d.ColumnName;
@@ -265,21 +249,21 @@ function getData() {
 				attributeSelection.appendChild(option);
 			}
 			else {
-				attributeNullData[d.ColumnName] = [d];
+				continuousAttributeNullData[d.ColumnName] = [d];
 			}
 		});
 		
-		for(var column in attributeData) {
+		for(var column in continuousAttributeData) {
 			var frequencySum = 0;
-			if(attributeData.hasOwnProperty(column)) {
-				attributeData[column].forEach(function(d) {
+			if(continuousAttributeData.hasOwnProperty(column)) {
+				continuousAttributeData[column].forEach(function(d) {
 					frequencySum+= d.BinSize;
 				});
-				if(attributeNullData[column] != null) {
-					frequencySum += attributeNullData[column][0]["BinSize"];
-                    attributeNullData[column][0]["Frequency"] = attributeNullData[column][0]["BinSize"] / frequencySum
+				if(continuousAttributeNullData[column] != null) {
+					frequencySum += continuousAttributeNullData[column][0]["BinSize"];
+                    continuousAttributeNullData[column][0]["Frequency"] = continuousAttributeNullData[column][0]["BinSize"] / frequencySum
 				}
-				attributeData[column].forEach(function(d) {
+				continuousAttributeData[column].forEach(function(d) {
 					d["Frequency"] = d.BinSize / frequencySum;
 				});
                 
@@ -287,16 +271,34 @@ function getData() {
 		}
 		
 		var selected = document.getElementsByClassName("attribute-selection")[0].value;
-		var toGraph = attributeData[selected];
-        if(attributeNullData[selected] != null) {
-            graphLift(toGraph, attributeNullData[selected]);
-            graphFreq(toGraph, attributeNullData[selected]);
-			graphNullLift(attributeNullData[selected], toGraph);
+		var toGraph = continuousAttributeData[selected];
+        if(continuousAttributeNullData[selected] != null) {
+            graphLift(toGraph, continuousAttributeNullData[selected]);
+            graphFreq(toGraph, continuousAttributeNullData[selected]);
+			graphNulls(continuousAttributeNullData[selected], toGraph);
 		} else {
             graphLift(toGraph, [{Frequency: 0}]);
             graphFreq(toGraph, [{Frequency: 0}]);
         }
 	});
+}
+
+function init() {
+	document.getElementsByClassName("attribute-selection")[0].onchange = function() {
+		var toGraph = continuousAttributeData[event.target.value];
+        if(continuousAttributeNullData[event.target.value] != null) {
+            graphLift(toGraph, continuousAttributeNullData[event.target.value]);
+            graphFreq(toGraph, continuousAttributeNullData[event.target.value]);
+			graphNulls(continuousAttributeNullData[event.target.value], toGraph);
+		} else {
+            graphLift(toGraph, [{Frequency: 0}]);
+            graphFreq(toGraph, [{Frequency: 0}]);
+        }
+	}
+	document.getElementsByClassName("csv-selection")[0].onchange = function() {
+		getData();
+	}
+	getData();
 }
 
 init();
