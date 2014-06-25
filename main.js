@@ -8,21 +8,11 @@ var	liftMargin = {top: 30, right: 00, bottom: 30, left: 50},	                   
 	liftHeight = 270 - liftMargin.top - liftMargin.bottom;		                		// sets the height of the graph area
 
 // Set the ranges
-var	liftX = d3.scale.linear().range([0, liftWidth]);			                		// scales the range of values on the x axis to fit between 0 and 'width'
 var	liftY = d3.scale.linear().range([liftHeight, 0]);			                    	// scales the range of values on the y axis to fit between 'height' and 0
 
-// Define the axes
-var	liftXAxis = d3.svg.axis().scale(liftX)						                    	// defines the x axis function and applies the scale for the x dimension
-	.orient("bottom").ticks(5);								                            // tells what side the ticks are on and how many to put on the axis
-
+// Define the Y axes
 var	liftYAxis = d3.svg.axis().scale(liftY)							                    // defines the y axis function and applies the scale for the y dimension
 	.orient("left").ticks(5);								                            // tells what side the ticks are on and how many to put on the axis
-
-// Define the line
-var	liftValueline = d3.svg.line()								                        // set 'valueline' to be a line
-	.interpolate("basis")								                            	// XXX Jake: change the interpolation for the line	
-	.x(function(d) { return liftX(d.Range); })				                        	// set the x coordinates for valueline to be the d.date values
-	.y(function(d) { return liftY(d.Lift); });					                        // set the y coordinates for valueline to be the d.close values
 
 // Adds the svg canvas
 var	liftSvg = d3.select(".lift-container")						                         // Explicitly state where the svg element will go (lift-container div)
@@ -38,23 +28,23 @@ var continuousAttributeNullData = {};
 var discreteAttributeNullData = {};
 
 function graphLift(toGraph, nullData) {
-    var absoluteMax = [];
-    absoluteMax.push(d3.max(toGraph, function(d) {return d.Lift;}));
-    absoluteMax.push(d3.max(nullData, function(d) {return d.Lift;}));
-
-	// Scale the range of the data
-	liftX.domain([d3.min(toGraph, function(d) { return d.Range; }), d3.max(toGraph, function(d) { return d.Range; })]);		// set the x domain so be as wide as the range of dates we have.
-	liftY.domain([0.0, d3.max(absoluteMax)]);	// set the y domain to go from 0 to the maximum value of d.close
-
-    var lineToGraph = [liftValueline(toGraph)];
-    
-	// Add the valueline path.
-	var line = liftSvg.selectAll(".line")
-				  .data(lineToGraph);
-	line.exit().transition().remove();
-	line.enter().append("path")
-				.attr("class", "line")
-	line.transition().attr("d", lineToGraph);	
+	var liftXAxis;
+	
+	if(toGraph[0].IsCategorical) {
+		
+		liftSvg.selectAll(".line").remove();
+		var	liftX = d3.scale.ordinal().rangeRoundBands([0, liftWidth]);
+		graphDiscreteLift(toGraph, nullData, liftX);
+		
+		liftXAxis = d3.svg.axis().scale(liftX)
+						  .orient("bottom").ticks(5);	
+	} else {
+		liftSvg.selectAll(".bar").remove();
+		var	liftX = d3.scale.linear().range([0, liftWidth]);
+		graphContinuousLift(toGraph, nullData, liftX);
+		liftXAxis = d3.svg.axis().scale(liftX)
+						  .orient("bottom").ticks(5);	
+	}
 
 	// Remove the old axes
 	liftSvg.selectAll(".axis").remove();
@@ -78,7 +68,55 @@ function graphLift(toGraph, nullData) {
 		.style("font-size", "16px")
 		.style("text-decoration", "bold")
 		.text("Lift")
-};
+}
+
+function graphDiscreteLift(toGraph, nullData, liftX) {
+    var absoluteMax = [];
+    absoluteMax.push(d3.max(toGraph, function(d) {return d.Lift;}));
+    absoluteMax.push(d3.max(nullData, function(d) {return d.Lift;}));
+	
+	liftY.domain([0.0, d3.max(absoluteMax)]);
+	liftX.domain(toGraph.map(function(d) { return d.LowerInclusive; }));
+	
+	var barWidth = liftWidth / toGraph.length;
+	
+	var bar = liftSvg.selectAll(".bar")
+					 .data(toGraph);
+	bar.enter().append("rect")
+			   .attr("class", "bar");
+	bar.transition().attr("y", function(d) {return liftY(d.Lift); })
+					.attr("x", function(d) {return liftX(d.LowerInclusive); })
+					.attr("height", function(d) {return liftHeight - liftY(d.Lift); })
+					.attr("width", barWidth - 1);
+    bar.exit().remove();
+}
+
+function graphContinuousLift(toGraph, nullData, liftX) {
+    var absoluteMax = [];
+    absoluteMax.push(d3.max(toGraph, function(d) {return d.Lift;}));
+    absoluteMax.push(d3.max(nullData, function(d) {return d.Lift;}));
+
+	// Define the line
+	var	liftValueline = d3.svg.line()								                        // set 'valueline' to be a line
+		.interpolate("basis")								                            	// XXX Jake: change the interpolation for the line	
+		.x(function(d) { return liftX(d.Range); })				                        	// set the x coordinates for valueline to be the d.date values
+		.y(function(d) { return liftY(d.Lift); });					                        // set the y coordinates for valueline to be the d.close values
+
+	// Scale the range of the data
+	liftX.domain([d3.min(toGraph, function(d) { return d.Range; }), d3.max(toGraph, function(d) { return d.Range; })]);		// set the x domain so be as wide as the range of dates we have.
+	liftY.domain([0.0, d3.max(absoluteMax)]);	// set the y domain to go from 0 to the maximum value of d.close
+
+    var lineToGraph = [liftValueline(toGraph)];
+    
+	// Add the valueline path.
+	var line = liftSvg.selectAll(".line")
+				      .data(lineToGraph);
+	line.exit().transition().remove();
+	line.enter().append("path")
+				.attr("class", "line")
+	line.transition().attr("d", lineToGraph);
+		
+}
 
 //****************************
 //    Frequency globals
@@ -172,7 +210,7 @@ var	nullLiftSvg = d3.select(".null-lift-container")						// Explicitly state whe
 		.attr("width", nullLiftWidth + nullLiftMargin.left + nullLiftMargin.right)	// Set the 'width' of the svg element
 		.attr("height", nullLiftHeight + nullLiftMargin.top + nullLiftMargin.bottom)// Set the 'height' of the svg element
 
-function graphNulls(toGraph, nonNullData) {
+function graphNulls(nonNullData, toGraph) {
 	var circleRadius = 5;
 	
 	var dot = liftSvg.selectAll("circle")
@@ -217,6 +255,66 @@ function parseRange(lower, upper) {
 	return ( +lower + +upper ) / 2;
 }
 
+function organizeData(d, array, nullArray) {
+	var attributeSelection = document.getElementsByClassName("attribute-selection")[0];
+	if(d.ColumnName in array && d.Range !== null) {
+		array[d.ColumnName].push(d);
+	}
+	else if(d.Range !== null){
+		array[d.ColumnName] = [d];
+		
+		var option = document.createElement("option");
+		option.textContent = d.ColumnName;
+		option.value = d.ColumnName;
+		attributeSelection.appendChild(option);
+	}
+	else {
+		nullArray[d.ColumnName] = [d];
+	}
+}
+
+function calculateFrequencySums(array, nullArray){
+	for(var column in array) {
+		var frequencySum = 0;
+		if(array.hasOwnProperty(column)) {
+			array[column].forEach(function(d) {
+				frequencySum+= d.BinSize;
+			});
+			if(nullArray[column] != null) {
+				frequencySum += nullArray[column][0]["BinSize"];
+				nullArray[column][0]["Frequency"] = nullArray[column][0]["BinSize"] / frequencySum
+			}
+			array[column].forEach(function(d) {
+				d["Frequency"] = d.BinSize / frequencySum;
+			});
+			
+		}
+	}
+}
+
+function graphSelectedData(selected) {
+	var array = null;
+	var nullArray = null;
+	
+	if(discreteAttributeData[selected] && discreteAttributeData[selected] != null){
+		array = discreteAttributeData[selected];
+		nullArray = discreteAttributeNullData[selected]
+	}
+	if(continuousAttributeData[selected] && continuousAttributeData[selected] != null){
+		array = continuousAttributeData[selected];
+		nullArray = continuousAttributeNullData[selected]
+	}
+
+	if(nullArray != null) {
+		graphLift(array, nullArray);
+		graphFreq(array, nullArray);
+		graphNulls(array, nullArray);
+	} else {
+		graphLift(array, [{Frequency: 0}]);
+		graphFreq(array, [{Frequency: 0}]);
+	}
+}
+
 function getData() {
 	continuousAttributeData = {};
 	continuousAttributeNullData = {};
@@ -233,67 +331,34 @@ function getData() {
 		d.MutualInformation = +d.MutualInformation;
 		d.BinSize = +d.BinSize;
 		d.EventCount = +d.EventCount;
+		if(d.IsCategorical === "False") {
+			d.IsCategorical = false;
+		}
+		if(d.IsCategorical === "True") {
+			d.IsCategorical = true;
+		}
 		return d;
 	},
 	function(error, data) {
 		data.forEach(function(d) {
-			if(d.ColumnName in continuousAttributeData && d.Range !== null) {
-				continuousAttributeData[d.ColumnName].push(d);
-			}
-			else if(d.Range !== null){
-				continuousAttributeData[d.ColumnName] = [d];
-				
-				var option = document.createElement("option");
-				option.textContent = d.ColumnName;
-				option.value = d.ColumnName;
-				attributeSelection.appendChild(option);
-			}
-			else {
-				continuousAttributeNullData[d.ColumnName] = [d];
+			if(d.IsCategorical) {
+				organizeData(d, discreteAttributeData, discreteAttributeNullData);
+			} else {
+				organizeData(d, continuousAttributeData, continuousAttributeNullData);
 			}
 		});
 		
-		for(var column in continuousAttributeData) {
-			var frequencySum = 0;
-			if(continuousAttributeData.hasOwnProperty(column)) {
-				continuousAttributeData[column].forEach(function(d) {
-					frequencySum+= d.BinSize;
-				});
-				if(continuousAttributeNullData[column] != null) {
-					frequencySum += continuousAttributeNullData[column][0]["BinSize"];
-                    continuousAttributeNullData[column][0]["Frequency"] = continuousAttributeNullData[column][0]["BinSize"] / frequencySum
-				}
-				continuousAttributeData[column].forEach(function(d) {
-					d["Frequency"] = d.BinSize / frequencySum;
-				});
-                
-			}
-		}
+		calculateFrequencySums(discreteAttributeData, discreteAttributeNullData);
+		calculateFrequencySums(continuousAttributeData, continuousAttributeNullData);
 		
 		var selected = document.getElementsByClassName("attribute-selection")[0].value;
-		var toGraph = continuousAttributeData[selected];
-        if(continuousAttributeNullData[selected] != null) {
-            graphLift(toGraph, continuousAttributeNullData[selected]);
-            graphFreq(toGraph, continuousAttributeNullData[selected]);
-			graphNulls(continuousAttributeNullData[selected], toGraph);
-		} else {
-            graphLift(toGraph, [{Frequency: 0}]);
-            graphFreq(toGraph, [{Frequency: 0}]);
-        }
+		graphSelectedData(selected);
 	});
 }
 
 function init() {
 	document.getElementsByClassName("attribute-selection")[0].onchange = function() {
-		var toGraph = continuousAttributeData[event.target.value];
-        if(continuousAttributeNullData[event.target.value] != null) {
-            graphLift(toGraph, continuousAttributeNullData[event.target.value]);
-            graphFreq(toGraph, continuousAttributeNullData[event.target.value]);
-			graphNulls(continuousAttributeNullData[event.target.value], toGraph);
-		} else {
-            graphLift(toGraph, [{Frequency: 0}]);
-            graphFreq(toGraph, [{Frequency: 0}]);
-        }
+		graphSelectedData(event.target.value);
 	}
 	document.getElementsByClassName("csv-selection")[0].onchange = function() {
 		getData();
