@@ -235,7 +235,7 @@ function updateDiscreteFreq(values, column) {
 	var nullData = discreteAttributeNullData[column];
 	var filteredData = [];
 	var	freqX = d3.scale.ordinal().rangeRoundBands([0, freqWidth]);
-	var liftXAxis = d3.svg.axis().scale(freqX)
+	var freqXAxis = d3.svg.axis().scale(freqX)
 				      .orient("bottom").ticks(5);
 	for(var i=0; i<attribute.length; i++){
 		if( values.indexOf(attribute[i].LowerInclusive) > -1) {
@@ -244,7 +244,7 @@ function updateDiscreteFreq(values, column) {
 	}
 	
 	graphDiscreteFreq(filteredData, nullData, freqX);
-	scaleLiftAxes(liftXAxis);
+	scaleFreqAxes(freqXAxis);
 }
 
 function graphContinuousFreq(toGraph, nullData, freqX) {
