@@ -4,10 +4,13 @@
 	<meta charset="utf-8">
 	<title>D3 test</title>
 	<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
 	<style>
 
 		body { font: 12px Arial;}		/* set the default text for anything occuring in the of the html */
-
+		select {
+			margin-bottom: 10px;
+		}
 		path { 
 			stroke: steelblue;			/* the line colour for paths is steelblue */
 			stroke-width: 2;			/* the line width for paths is 2 pixels */
@@ -59,20 +62,29 @@
 </style>
 </head>
 <body>
-	<select class="csv-selection">
-		<option value="outputDataKeith.csv">21 Main Street</option>
-		<option value="MainStreetHubAttributes.csv">Main Street Hub</option>
-		<option value="McAfeeAttributes.csv">McAfee</option>
-		<option value="NutanixAttributes.csv">Nutanix</option>
-		<option value="SpiceWorksAttribtes.csv">Spice Works</option>
-		<option value="VitalSmartsAttributes.csv">Vital Smarts</option>
-	</select>
-	<select class="attribute-selection"></select>
-	<div class="lift-graphs">
-		<div class="lift-container"></div>
-		<div class="null-lift-container"></div>
+	<div class="container">
+		<div class="page-header">
+			<h1>2D Lift and Frequency</h1>
+		</div>
+		<div class="row controls">
+			<div class="col-md-3">
+			<select class="csv-selection form-control">
+				<option value="outputDataKeith.csv">21 Main Street</option>
+				<option value="MainStreetHubAttributes.csv">Main Street Hub</option>
+				<option value="McAfeeAttributes.csv">McAfee</option>
+				<option value="NutanixAttributes.csv">Nutanix</option>
+				<option value="SpiceWorksAttribtes.csv">Spice Works</option>
+				<option value="VitalSmartsAttributes.csv">Vital Smarts</option>
+			</select>
+			<select class="attribute-selection form-control"></select>
+			</div>
+			<div class="lift-container col-md-7"></div>
+			
+		</div>
+		<div class="row">
+			<div class="frequency-container col-md-7 col-md-offset-3"></div>
+		</div>
 	</div>
-	<div class="frequency-container"></div>
 	<script src="main.js"></script>
 </body>
 </html>
