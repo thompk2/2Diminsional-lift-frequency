@@ -45,24 +45,29 @@
 		}
         
         .null-lift,
-        .null-freq
-        {
+        .null-freq {
             stroke: red;
             stroke-width: 2px;
             fill-opacity: 0;
         }
         
         .null-freq:hover,
-        .null-lift:hover
-        {
+        .null-lift:hover {
             fill-opacity: 1;
         }
-		
-		.select-container
-		{
-			overflow: visible;
-			height: 270px;
+		@media (min-width: 768px) {
+			.select-container {
+				height: 200px;
+				overflow: auto;
+			}
 		}
+		@media (min-width: 992px) {
+			.select-container {
+				overflow: visible;
+				height: inherit;
+			}
+		}
+
 </style>
 </head>
 <body>
