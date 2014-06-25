@@ -4,7 +4,7 @@
 
 // Set the dimensions of the canvas / graph
 var	liftMargin = {top: 30, right: 00, bottom: 30, left: 50},	                        // sets the width of the margins around the actual graph area
-	liftWidth = 550 - liftMargin.left - liftMargin.right,		                		// sets the width of the graph area
+	liftWidth = 545 - liftMargin.left - liftMargin.right,		                		// sets the width of the graph area
 	liftHeight = 270 - liftMargin.top - liftMargin.bottom;		                		// sets the height of the graph area
 
 // Set the ranges
@@ -172,7 +172,7 @@ function onChangeCheckbox(event, column) {
 		
 // Set the dimensions of the canvas / graph
 var	freqMargin = {top: 30, right: 20, bottom: 30, left: 50},	// sets the width of the margins around the actual graph area
-	freqWidth = 550 - freqMargin.left - freqMargin.right,				// sets the width of the graph area
+	freqWidth = 545 - freqMargin.left - freqMargin.right,				// sets the width of the graph area
 	freqHeight = 200 - freqMargin.top - freqMargin.bottom;				// sets the height of the graph area
 
 // Set the ranges

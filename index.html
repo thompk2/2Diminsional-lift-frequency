@@ -39,9 +39,16 @@
 		  text-anchor: middle;
 		}
 		
-		.null-lift-container,
-		.lift-container{
-			display: inline-block;
+		.lift-container,
+		.frequency-container{
+			overflow: auto;
+		}
+        
+        .lift-container svg,
+		.frequency-container svg{
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
 		}
         
         .null-lift,
@@ -55,12 +62,10 @@
         .null-lift:hover {
             fill-opacity: 1;
         }
-		@media (min-width: 768px) {
-			.select-container {
-				height: 200px;
-				overflow: auto;
-			}
-		}
+        .select-container {
+            max-height: 200px;
+            overflow: auto;
+        }
 		@media (min-width: 992px) {
 			.select-container {
 				overflow: visible;
@@ -86,11 +91,11 @@
 			</select>
 			<select class="attribute-selection form-control input-sm"></select>
 			</div>
-			<div class="lift-container col-md-7"></div>
+			<div class="lift-container col-md-7 col-sm-12 col-xs-12 well well-sm"></div>
 			<div class="select-container col-md-3"></div>
 		</div>
 		<div class="row">
-			<div class="frequency-container col-md-7 col-md-offset-2"></div>
+			<div class="frequency-container col-md-7 col-sm-12 col-xs-12 col-md-offset-2 well well-sm"></div>
 		</div>
 	</div>
 	<script src="main.js"></script>
