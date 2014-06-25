@@ -57,6 +57,12 @@
         {
             fill-opacity: 1;
         }
+		
+		.select-container
+		{
+			overflow: visible;
+			height: 270px;
+		}
 </style>
 </head>
 <body>
@@ -65,8 +71,8 @@
 			<h1>2D Lift and Frequency</h1>
 		</div>
 		<div class="row controls">
-			<div class="col-md-3">
-			<select class="csv-selection form-control">
+			<div class="col-md-2">
+			<select class="csv-selection form-control input-sm">
 				<option value="outputDataKeith.csv">21 Main Street</option>
 				<option value="MainStreetHubAttributes.csv">Main Street Hub</option>
 				<option value="McAfeeAttributes.csv">McAfee</option>
@@ -74,13 +80,13 @@
 				<option value="SpiceWorksAttribtes.csv">Spice Works</option>
 				<option value="VitalSmartsAttributes.csv">Vital Smarts</option>
 			</select>
-			<select class="attribute-selection form-control"></select>
+			<select class="attribute-selection form-control input-sm"></select>
 			</div>
 			<div class="lift-container col-md-7"></div>
-			
+			<div class="select-container col-md-3"></div>
 		</div>
 		<div class="row">
-			<div class="frequency-container col-md-7 col-md-offset-3"></div>
+			<div class="frequency-container col-md-7 col-md-offset-2"></div>
 		</div>
 	</div>
 	<script src="main.js"></script>
