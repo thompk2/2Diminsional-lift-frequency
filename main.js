@@ -27,7 +27,7 @@ var discreteAttributeData = {};
 var continuousAttributeNullData = {};
 var discreteAttributeNullData = {};
 
-function graphLift(toGraph, nullData, selected) {
+function graphLift(toGraph, nullData, selected, isDiscrete) {
 	var liftXAxis;
 	
 	// Remove all the checkboxes from the dom
@@ -36,7 +36,7 @@ function graphLift(toGraph, nullData, selected) {
 		form.removeChild(form.firstChild);
 	}
 	
-	if(toGraph[0].IsCategorical) {
+	if(isDiscrete) {
         //Show attribute panel
         document.getElementsByClassName("attribute-panel")[0].classList.remove("hidden-component");
         
@@ -184,10 +184,10 @@ var	freqSvg = d3.select(".frequency-container")									// Explicitly state wher
 	.append("g")											// Append 'g' to the html 'body' of the web page
 		.attr("transform", "translate(" + freqMargin.left + "," + freqMargin.top + ")"); // in a place that is the actual area for the graph		
 
-function graphFreq(toGraph, nullData) {
+function graphFreq(toGraph, nullData, selected, isDiscrete) {
     var	freqXAxis;
     
-    if(toGraph[0].IsCategorical) {
+    if(isDiscrete) {
 		freqSvg.selectAll(".line").remove();
 		var	freqX = d3.scale.ordinal().rangeRoundBands([0, freqWidth]);
 		graphDiscreteFreq(toGraph, nullData, freqX);
@@ -386,11 +386,13 @@ function graphSelectedData(filter) {
     var showNulls = document.getElementsByClassName("display-nulls")[0].classList.contains("active");
 	var array = [];
 	var nullArray = null;
+    var isDiscrete = false;
     
 
 	
 	if(discreteAttributeData[selected] && discreteAttributeData[selected] != null){
         var tempArray = discreteAttributeData[selected];
+        isDiscrete = true;
         
         if(filter && filter != null) {
             for(var i=0; i<tempArray.length; i++){
@@ -410,12 +412,12 @@ function graphSelectedData(filter) {
 	}
 
 	if(nullArray != null && showNulls === true) {
-		graphLift(array, nullArray, selected);
-		graphFreq(array, nullArray);
+		graphLift(array, nullArray, selected, isDiscrete);
+		graphFreq(array, nullArray, selected, isDiscrete);
 		graphNulls(array, nullArray);
 	} else {
-		graphLift(array, [{Frequency: 0}], selected);
-		graphFreq(array, [{Frequency: 0}]);
+		graphLift(array, [{Frequency: 0}], selected, isDiscrete);
+		graphFreq(array, [{Frequency: 0}], selected, isDiscrete);
         graphNulls(array, []);
 	}
 }
