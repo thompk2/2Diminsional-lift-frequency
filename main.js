@@ -339,6 +339,13 @@ function graphNulls(nonNullData, toGraph) {
 	freqDot.transition().attr("cy", function(d) { return freqY(d.Frequency); });
 };
 
+function toggleNulls(element){
+    element.classList.toggle("active");
+    var selected = document.getElementsByClassName("attribute-selection")[0].value;
+    var showNulls = document.getElementsByClassName("display-nulls")[0].classList.contains("active");
+    graphSelectedData(selected, showNulls);
+};
+
 // Lousy way to get a single number from the upper and lower bound ranges
 function parseRange(lower, upper) {
 	if(lower === "NULL" && upper === "NULL") {
@@ -393,7 +400,7 @@ function calculateFrequencySums(array, nullArray){
 	}
 }
 
-function graphSelectedData(selected) {
+function graphSelectedData(selected, showNulls) {
 	var array = null;
 	var nullArray = null;
 	
@@ -406,7 +413,7 @@ function graphSelectedData(selected) {
 		nullArray = continuousAttributeNullData[selected]
 	}
 
-	if(nullArray != null) {
+	if(nullArray != null && showNulls === true) {
 		graphLift(array, nullArray);
 		graphFreq(array, nullArray);
 		graphNulls(array, nullArray);
@@ -454,17 +461,22 @@ function getData() {
 		calculateFrequencySums(continuousAttributeData, continuousAttributeNullData);
 		
 		var selected = document.getElementsByClassName("attribute-selection")[0].value;
-		graphSelectedData(selected);
+        var showNulls = document.getElementsByClassName("display-nulls")[0].classList.contains("active");
+		graphSelectedData(selected, showNulls);
 	});
 }
 
 function init() {
 	document.getElementsByClassName("attribute-selection")[0].onchange = function() {
-		graphSelectedData(event.target.value);
+        var showNulls = document.getElementsByClassName("display-nulls")[0].classList.contains("active");
+		graphSelectedData(event.target.value, showNulls);
 	}
 	document.getElementsByClassName("csv-selection")[0].onchange = function() {
 		getData();
 	}
+    document.getElementsByClassName("display-nulls")[0].onclick = function() {
+        toggleNulls(event.target);
+    }
 	getData();
 }
 
