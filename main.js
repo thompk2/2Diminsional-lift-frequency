@@ -598,6 +598,15 @@ function getData() {
 		return d;
 	},
 	function(error, data) {
+        data.sort(function(a, b){
+			if(d3.ascending(a.ColumnName, b.ColumnName) == 0)
+			{
+				return d3.ascending(a.Range, b.Range);
+			}
+			
+            return d3.ascending(a.ColumnName, b.ColumnName);
+        });
+		
 		data.forEach(function(d) {
 			if(d.IsCategorical) {
 				organizeData(d, discreteAttributeData, discreteAttributeNullData);
