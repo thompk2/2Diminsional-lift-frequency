@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+</head>
+<style>
+/* XXX Jake: add blurring to the image to clean up Chrome image scaling issues */
+.lift-container:hover{
+	-webkit-filter: blur(3px); 
+    -moz-filter: blur(3px); 
+    filter: blur(3px); 
+}
+
+.lift-container {
+    margin-right: auto;
+    margin-left: auto;
+    width: 500px;
+    position: relative;
+}
+
+.lift-svg {
+    
+}
+
+.lift-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.axis text {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.axis path {
+  display: none;
+}
+
+</style>
+<body>
+    <nav class="navbar navbar-default" role="navigation">
+        <div class="container">
+            <div class="collapse navbar-collapse">
+                <ul class="nav navbar-nav">
+                    <li ><a href="./index.html">2D</a></li>
+                    <li class="active"><a href="#">3D</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+		<div class="page-header">
+			<h1>3D Lift</h1>
+		</div>
+        <div class="well">
+            <div class="lift-container"></div>
+        </div>
+    </div>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+
+var width = 500,
+    height = 500;
+
+d3.json("heatmap.json", function(error, heatmap) {
+  var dx = heatmap[0].length,
+      dy = heatmap.length;
+
+  // Fix the aspect ratio.
+  // var ka = dy / dx, kb = height / width;
+  // if (ka < kb) height = width * ka;
+  // else width = height / ka;
+
+  var x = d3.scale.linear()
+      .domain([0, dx])
+      .range([0, width]);
+
+  var y = d3.scale.linear()
+      .domain([0, dy])
+      .range([height, 0]);
+
+  var color = d3.scale.ordinal()
+      .domain([0.5, 0.75,1, 1.25, 1.5, 2])
+      .range(["#f1eef6", "#d0d1e6", "#a6bddb", "#74a9cf", "#2b8cbe", "#045a8d"]);
+
+  var xAxis = d3.svg.axis()
+      .scale(x)
+      .orient("top")
+      .ticks(20);
+
+  var yAxis = d3.svg.axis()
+      .scale(y)
+      .orient("right");
+
+  d3.select(".lift-container").append("canvas")
+      .attr("width", dx)
+      .attr("height", dy)
+      .style("width", width + "px")
+      .style("height", height + "px")
+      .attr("class", "lift-canvas")
+      .call(drawImage);
+
+  var svg = d3.select(".lift-container").append("svg")
+      .attr("width", width)
+      .attr("class", "lift-svg")
+      .attr("height", height);
+
+ 
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+      .call(removeZero);
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+      .call(removeZero);
+
+  // Compute the pixel colors; scaled by CSS.
+  function drawImage(canvas) {
+    var context = canvas.node().getContext("2d");
+	//context.imageSmoothingEnabled = false;
+    //context.webkitImageSmoothingEnabled = false;
+    //context.mozImageSmoothingEnabled = false;
+
+	
+	var image = context.createImageData(dx, dy);
+	
+	
+    for (var y = 0, p = -1; y < dy; ++y) {
+      for (var x = 0; x < dx; ++x) {
+        var c = d3.rgb(color(heatmap[y][x]));
+        image.data[++p] = c.r;
+        image.data[++p] = c.g;
+        image.data[++p] = c.b;
+        image.data[++p] = 255;
+      }
+    }
+
+    context.putImageData(image, 0, 0);
+  }
+
+  function removeZero(axis) {
+    axis.selectAll("g").filter(function(d) { return !d; }).remove();
+  }
+});
+
+</script>
