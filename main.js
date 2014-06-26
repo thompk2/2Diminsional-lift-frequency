@@ -579,6 +579,8 @@ function graphSelectedData(filter) {
 function getData() {
 	continuousAttributeData = {};
 	continuousAttributeNullData = {};
+	discreteAttributeData = {};
+	discreteAttributeNullData = {};
 
 	// Get the data
 	var csvSelection = document.getElementsByClassName("csv-selection")[0]
