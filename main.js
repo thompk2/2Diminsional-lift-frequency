@@ -87,10 +87,24 @@ function graphDiscreteLift(toGraph, nullData, liftX) {
 	
 	var barWidth = liftWidth / toGraph.length;
 	
+    var div = d3.select("body")
+				.append("div")
+				.attr('class', 'tooltip');
+                
 	var bar = liftSvg.selectAll(".bar")
 					 .data(toGraph);
 	bar.enter().append("rect")
-			   .attr("class", "bar");
+			   .attr("class", "bar")
+               .on("mouseover", function(d) {
+						div.transition().style("opacity", 0.7);
+						div.html("<strong>Name:</strong> " + d.LowerInclusive + "<div></div><strong>Lift:</strong>  " + d.Lift.toFixed(2))
+                           .style("left", (d3.event.pageX) + "px")     
+                		   .style("top", (d3.event.pageY - 28) + "px");
+				})
+				.on("mouseout", function(d) {
+						div.transition().style("opacity", 0)
+				});
+                
 	bar.transition().attr("y", function(d) {return liftY(d.Lift); })
 					.attr("x", function(d) {return liftX(d.LowerInclusive); })
 					.attr("height", function(d) {return liftHeight - liftY(d.Lift); })
@@ -214,10 +228,24 @@ function graphDiscreteFreq(toGraph, nullData, freqX) {
 	
 	var barWidth = freqWidth / toGraph.length;
 	
+    var div = d3.select("body")
+				.append("div")
+				.attr('class', 'tooltip');
+                
 	var bar = freqSvg.selectAll(".bar")
 					 .data(toGraph);
 	bar.enter().append("rect")
-			   .attr("class", "bar");
+			   .attr("class", "bar")
+               .on("mouseover", function(d) {
+						div.transition().style("opacity", 0.7);
+						div.html("<strong>Name:</strong> " + d.LowerInclusive + "<div></div><strong>Frequency:</strong>  " + d.Frequency.toFixed(2))
+                           .style("left", (d3.event.pageX) + "px")     
+                		   .style("top", (d3.event.pageY - 28) + "px");
+				})
+				.on("mouseout", function(d) {
+						div.transition().style("opacity", 0)
+				});
+                
 	bar.transition().attr("y", function(d) {return freqY(d.Frequency); })
 					.attr("x", function(d) {return freqX(d.LowerInclusive); })
 					.attr("height", function(d) {return freqHeight - freqY(d.Frequency); })
