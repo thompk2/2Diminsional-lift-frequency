@@ -37,7 +37,10 @@ function recalculateSort(clickedAttribute)
         sortOrder = SortOrderEnum.ASC;
     }
     
-    graphSelectedData();
+    var selected = document.getElementsByClassName("attribute-selection")[0].value;
+    var column = discreteAttributeData[selected];
+    var filter = getCheckedAttributes(column)
+    graphSelectedData(filter);
 }
 
 
