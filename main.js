@@ -1,4 +1,78 @@
 //****************************
+//       Sort globals
+//****************************
+
+var SortOrderEnum = Object.freeze(
+    {
+        ASC:1,
+        DESC:2,
+        MAXSORT:3
+    });
+    
+var SortAttributeEnum = Object.freeze(
+    {
+        LIFT:1,
+        FREQ:2,
+        ALPHA:3
+    });
+    
+var sortOrder = SortOrderEnum.ASC;
+var sortAttribute = SortAttributeEnum.ALPHA;
+
+
+function recalculateSort(clickedAttribute)
+{
+    if(sortAttribute == clickedAttribute)
+    {
+        sortOrder = (sortOrder + 1) 
+        if(sortOrder == SortOrderEnum.MAXSORT)
+        {
+            sortAttribute = SortAttributeEnum.ALPHA;
+            sortOrder = SortOrderEnum.ASC;
+        }
+    }
+    else
+    {
+        sortAttribute = clickedAttribute;
+        sortOrder = SortOrderEnum.ASC;
+    }
+    
+    graphSelectedData();
+}
+
+
+function applyCurrentSort(array)
+{
+    array.sort(function(a, b){
+        var lhs, rhs;
+        if(sortAttribute == SortAttributeEnum.LIFT)
+        {
+            lhs = a.Lift;
+            rhs = b.Lift;
+        }
+        else if(sortAttribute == SortAttributeEnum.FREQ)
+        {
+            lhs = a.Frequency;
+            rhs = b.Frequency;
+        }
+        else 
+        {
+            // Default fall through attribute should be Alphabetical
+            lhs = a.LowerInclusive;
+            rhs = b.LowerInclusive;
+        }
+        
+        if(sortOrder == SortOrderEnum.DESC)
+        {
+            return d3.descending(lhs, rhs);
+        }
+        
+        // Default fall through order should be Ascending
+        return d3.ascending(lhs, rhs);
+    });
+}
+
+//****************************
 //       Lift globals
 //****************************
 
@@ -26,6 +100,7 @@ var continuousAttributeData = {};
 var discreteAttributeData = {};
 var continuousAttributeNullData = {};
 var discreteAttributeNullData = {};
+
 
 function graphLift(toGraph, nullData, selected, isDiscrete) {
 	var liftXAxis;
@@ -74,7 +149,7 @@ function graphLift(toGraph, nullData, selected, isDiscrete) {
 						  .orient("bottom").ticks(5);	
 	}
 
-	scaleLiftAxes(liftXAxis);
+	scaleLiftAxes(liftXAxis, isDiscrete);
 }
 
 function graphDiscreteLift(toGraph, nullData, liftX) {
@@ -112,22 +187,33 @@ function graphDiscreteLift(toGraph, nullData, liftX) {
     bar.exit().remove();
 }
 
-function scaleLiftAxes(liftXAxis) {
+function scaleLiftAxes(liftXAxis, isDiscrete) {
 	// Remove the old axes
 	liftSvg.selectAll(".axis").remove();
 	liftSvg.selectAll("text").remove();
 	
-	// Add the X Axis
-	liftSvg.append("g")											// append the x axis to the 'g' (grouping) element
-		.attr("class", "x axis")							// apply the 'axis' CSS styles to this path
-		.attr("transform", "translate(0," + liftHeight + ")")	// move the drawing point to 0,height
-		.call(liftXAxis);										// call the xAxis function to draw the axis
+    // Add the X Axis
+    var xAxis = liftSvg.append("g")											// append the x axis to the 'g' (grouping) element
+                       .attr("class", "x axis")							// apply the 'axis' CSS styles to this path
+                       .attr("transform", "translate(0," + liftHeight + ")")	// move the drawing point to 0,height
+                       .call(liftXAxis);										// call the xAxis function to draw the axis
 
-	// Add the Y Axis
-	liftSvg.append("g")											// append the y axis to the 'g' (grouping) element
-		.attr("class", "y axis")							// apply the 'axis' CSS styles to this path
-		.call(liftYAxis);										// call the yAxis function to draw the axis
-
+    // Add the Y Axis
+    var yAxis = liftSvg.append("g")											// append the y axis to the 'g' (grouping) element
+                       .attr("class", "y axis")							// apply the 'axis' CSS styles to this path
+                       .call(liftYAxis);										// call the yAxis function to draw the axis
+    
+    if(isDiscrete)
+    {
+        xAxis.on("click", function(d) {
+            recalculateSort(SortAttributeEnum.ALPHA);
+        });
+        
+        yAxis.on("click", function(d) {
+            recalculateSort(SortAttributeEnum.LIFT);
+        });
+    }
+    
 	liftSvg.append("text")
 		.attr("x", (liftWidth/2))
 		.attr("y", 0 - (liftMargin.top)/2)
@@ -198,6 +284,7 @@ var	freqSvg = d3.select(".frequency-container")									// Explicitly state wher
 	.append("g")											// Append 'g' to the html 'body' of the web page
 		.attr("transform", "translate(" + freqMargin.left + "," + freqMargin.top + ")"); // in a place that is the actual area for the graph		
 
+
 function graphFreq(toGraph, nullData, selected, isDiscrete) {
     var	freqXAxis;
     
@@ -215,7 +302,7 @@ function graphFreq(toGraph, nullData, selected, isDiscrete) {
 						  .orient("bottom").ticks(5);	
 	}
     
-    scaleFreqAxes(freqXAxis);
+    scaleFreqAxes(freqXAxis, isDiscrete);
 };
 
 function graphDiscreteFreq(toGraph, nullData, freqX) {
@@ -280,22 +367,33 @@ function graphContinuousFreq(toGraph, nullData, freqX) {
 	line.transition().attr("d", lineToGraph);	
 };
 
-function scaleFreqAxes(freqXAxis) {
-	// Remove the old axes
-	freqSvg.selectAll(".axis").remove();
-	freqSvg.selectAll("text").remove();
-	
-	// Add the X Axis
-	freqSvg.append("g")											// append the x axis to the 'g' (grouping) element
-		.attr("class", "x axis")							    // apply the 'axis' CSS styles to this path
-		.attr("transform", "translate(0," + freqHeight + ")")	// move the drawing point to 0,height
-		.call(freqXAxis);										// call the xAxis function to draw the axis
+function scaleFreqAxes(freqXAxis, isDiscrete) {
+    // Remove the old axes
+    freqSvg.selectAll(".axis").remove();
+    freqSvg.selectAll("text").remove();
 
-	// Add the Y Axis
-	freqSvg.append("g")											// append the y axis to the 'g' (grouping) element
-		.attr("class", "y axis")							    // apply the 'axis' CSS styles to this path
-		.call(freqYAxis);										// call the yAxis function to draw the axis
+    // Add the X Axis
+    var xAxis = freqSvg.append("g")											// append the x axis to the 'g' (grouping) element
+                       .attr("class", "x axis")							    // apply the 'axis' CSS styles to this path
+                       .attr("transform", "translate(0," + freqHeight + ")")	// move the drawing point to 0,height
+                       .call(freqXAxis);										// call the xAxis function to draw the axis
 
+    // Add the Y Axis
+    var yAxis = freqSvg.append("g")											// append the y axis to the 'g' (grouping) element
+                       .attr("class", "y axis")							    // apply the 'axis' CSS styles to this path
+                       .call(freqYAxis);										// call the yAxis function to draw the axis
+
+    if(isDiscrete)
+    {
+        xAxis.on("click", function(d) {
+            recalculateSort(SortAttributeEnum.ALPHA);
+        });
+        
+        yAxis.on("click", function(d) {
+            recalculateSort(SortAttributeEnum.FREQ);
+        });
+    }
+    
 	freqSvg.append("text")
 		.attr("x", (freqWidth/2))
 		.attr("y", 0 - (freqMargin.top)/2)
@@ -409,16 +507,17 @@ function calculateFrequencySums(array, nullArray){
 	}
 }
 
+
 function graphSelectedData(filter) {
     var selected = document.getElementsByClassName("attribute-selection")[0].value;
     var showNulls = document.getElementsByClassName("display-nulls")[0].classList.contains("active");
-	var array = [];
-	var nullArray = null;
+    var array = [];
+    var nullArray = null;
     var isDiscrete = false;
     
 
-	
-	if(discreteAttributeData[selected] && discreteAttributeData[selected] != null){
+
+    if(discreteAttributeData[selected] && discreteAttributeData[selected] != null){
         var tempArray = discreteAttributeData[selected];
         isDiscrete = true;
         
@@ -432,13 +531,15 @@ function graphSelectedData(filter) {
             array = tempArray;
         }
 
-		nullArray = discreteAttributeNullData[selected]
+        nullArray = discreteAttributeNullData[selected]
+        applyCurrentSort(array)
 	}
 	if(continuousAttributeData[selected] && continuousAttributeData[selected] != null){
 		array = continuousAttributeData[selected];
 		nullArray = continuousAttributeNullData[selected]
 	}
 
+    
 	if(nullArray != null && showNulls === true) {
 		graphLift(array, nullArray, selected, isDiscrete);
 		graphFreq(array, nullArray, selected, isDiscrete);
