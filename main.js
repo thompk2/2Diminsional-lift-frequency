@@ -324,19 +324,19 @@ function graphDiscreteFreq(toGraph, nullData, freqX) {
 	bar.enter().append("rect")
 			   .attr("class", "bar")
                .on("mouseover", function(d) {
-						div.transition().style("opacity", 0.7);
-						div.html("<strong>Name:</strong> " + d.LowerInclusive + "<div></div><strong>Frequency:</strong>  " + d.Frequency.toFixed(2))
-                           .style("left", (d3.event.pageX) + "px")     
-                		   .style("top", (d3.event.pageY - 28) + "px");
-				})
-				.on("mouseout", function(d) {
-						div.transition().style("opacity", 0)
-				});
+                    div.transition().style("opacity", 0.7);
+                    div.html("<strong>Name:</strong> " + d.LowerInclusive + "<div></div><strong>Frequency:</strong>  " + d.Frequency.toFixed(2))
+                       .style("left", (d3.event.pageX) + "px")     
+                       .style("top", (d3.event.pageY - 28) + "px");
+                })
+                .on("mouseout", function(d) {
+                        div.transition().style("opacity", 0)
+                });
                 
-	bar.transition().attr("y", function(d) {return freqY(d.Frequency); })
-					.attr("x", function(d) {return freqX(d.LowerInclusive); })
-					.attr("height", function(d) {return freqHeight - freqY(d.Frequency); })
-					.attr("width", barWidth - 1);
+    bar.transition().attr("y", function(d) {return freqY(d.Frequency); })
+                    .attr("x", function(d) {return freqX(d.LowerInclusive); })
+                    .attr("height", function(d) {return freqHeight - freqY(d.Frequency); })
+                    .attr("width", barWidth - 1);
     bar.exit().remove();
 };
 
@@ -417,31 +417,53 @@ var	nullLiftSvg = d3.select(".null-lift-container")						// Explicitly state whe
 		.attr("height", nullLiftHeight + nullLiftMargin.top + nullLiftMargin.bottom)// Set the 'height' of the svg element
 
 function graphNulls(nonNullData, toGraph) {
-	var circleRadius = 5;
-	
-	var dot = liftSvg.selectAll("circle")
-				     .data(toGraph);
-						 
-	dot.enter().append("circle")
+    var div = d3.select("body")
+                .append("div")
+                .attr('class', 'tooltip');
+    
+    var circleRadius = 5;
+
+    var dot = liftSvg.selectAll("circle")
+                     .data(toGraph);
+                         
+    dot.enter().append("circle")
                .attr("class", "null-lift")
-			   .attr("r", circleRadius)
-               .attr("cx", 0);
-			   
-			 
-	dot.exit().remove();
-	dot.transition().attr("cy", function(d) { return liftY(d.Lift); });
+               .attr("r", circleRadius)
+               .attr("cx", 0)
+               .on("mouseover", function(d) {
+                    div.transition().style("opacity", 0.7);
+                    div.html("<strong>Name:</strong> " + "Unknown" + "<div></div><strong>Lift:</strong>  " + d.Lift.toFixed(2))
+                       .style("left", (d3.event.pageX) + "px")     
+                       .style("top", (d3.event.pageY - 28) + "px");
+                })
+                .on("mouseout", function(d) {
+                        div.transition().style("opacity", 0)
+                });
+               
+             
+    dot.exit().remove();
+    dot.transition().attr("cy", function(d) { return liftY(d.Lift); });
     
     var freqDot = freqSvg.selectAll("circle")
-				     .data(toGraph);
-						 
-	freqDot.enter().append("circle")
+                     .data(toGraph);
+                         
+    freqDot.enter().append("circle")
                .attr("class", "null-freq")
-			   .attr("r", circleRadius)
-               .attr("cx", 0);
-			   
-			 
-	freqDot.exit().remove();
-	freqDot.transition().attr("cy", function(d) { return freqY(d.Frequency); });
+               .attr("r", circleRadius)
+               .attr("cx", 0)
+               .on("mouseover", function(d) {
+                    div.transition().style("opacity", 0.7);
+                    div.html("<strong>Name:</strong> " + "Unknown" + "<div></div><strong>Frequency:</strong>  " + d.Frequency.toFixed(2))
+                       .style("left", (d3.event.pageX) + "px")     
+                       .style("top", (d3.event.pageY - 28) + "px");
+                })
+                .on("mouseout", function(d) {
+                        div.transition().style("opacity", 0)
+                });
+               
+             
+    freqDot.exit().remove();
+    freqDot.transition().attr("cy", function(d) { return freqY(d.Frequency); });
 };
 
 function toggleNulls(element){
